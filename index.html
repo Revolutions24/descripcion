@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descripción Macroscópica de Rocas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="font-sans bg-gray-100 text-gray-800 p-8">
+    <h1 class="text-2xl font-bold mb-6">Descripción Macroscópica de Rocas</h1>
+
+    <form class="space-y-4">
+        <div>
+            <label for="titulo" class="block font-medium mb-1">Título del informe:</label>
+            <input type="text" id="titulo" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+            <label for="formacion" class="block font-medium mb-1">Formación/Unidad/Grupo:</label>
+            <input type="text" id="formacion" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+            <label for="coordenadas" class="block font-medium mb-1">Coordenadas:</label>
+            <input type="text" id="coordenadas" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+            <label for="progresiva" class="block font-medium mb-1">Progresiva:</label>
+            <input type="text" id="progresiva" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+            <label for="origen" class="block font-medium mb-1">Clase según origen:</label>
+            <select id="origen" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" onchange="updateOptions()">
+                <option value="Sedimentaria">Sedimentaria</option>
+                <option value="Metamórfica">Metamórfica</option>
+                <option value="Ígnea">Ígnea</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="nombre_roca" class="block font-medium mb-1">Nombre de roca:</label>
+            <select id="nombre_roca" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="Arenisca">Arenisca</option>
+                <option value="Caliza">Caliza</option>
+                <option value="Lutita">Lutita</option>
+                <option value="Conglomerado">Conglomerado</option>
+                <option value="Pizarra">Pizarra</option>
+                <option value="Gneis">Gneis</option>
+                <option value="Granito">Granito</option>
+                <option value="Diorita">Diorita</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="textura" class="block font-medium mb-1">Textura:</label>
+            <select id="textura" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="Clástica">Clástica</option>
+                <option value="Laminada">Laminada</option>
+                <option value="Foliada">Foliada</option>
+                <option value="Fanerítica">Fanerítica</option>
+            </select>
+        </div>
+
+        <div class="flex justify-center space-x-4 mt-8">
+            <div>
+                <label for="foto1" class="block font-medium mb-1">Foto 1:</label>
+                <input type="file" id="foto1" accept="image/*" onchange="previewImage(this, 'imgPreview1')" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <img id="imgPreview1" src="" alt="Vista previa de foto 1" class="max-w-[300px] h-auto mt-2 hidden">
+            </div>
+            <div>
+                <label for="foto2" class="block font-medium mb-1">Foto 2:</label>
+                <input type="file" id="foto2" accept="image/*" onchange="previewImage(this, 'imgPreview2')" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <img id="imgPreview2" src="" alt="Vista previa de foto 2" class="max-w-[300px] h-auto mt-2 hidden">
+            </div>
+        </div>
+
+        <button type="button" onclick="generatePDF()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-md block mx-auto mt-8">
+            Generar PDF
+        </button>
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        function updateOptions() {
+            const origen = document.getElementById('origen').value;
+            const nombreRoca = document.getElementById('nombre_roca');
+            const textura = document.getElementById('textura');
+
+            // Actualiza las opciones de nombre de roca y textura dependiendo del origen
+            if (origen === 'Sedimentaria') {
+                nombreRoca.innerHTML = `
+                    <option value="Arenisca">Arenisca</option>
+                    <option value="Caliza">Caliza</option>
+                    <option value="Lutita">Lutita</option>
+                    <option value="Conglomerado">Conglomerado</option>
+                `;
+                textura.innerHTML = `
+                    <option value="Clástica">Clástica</option>
+                    <option value="Orgánica">Orgánica</option>
+                `;
+            } else if (origen === 'Metamórfica') {
+                nombreRoca.innerHTML = `
+                    <option value="Pizarra">Pizarra</option>
+                    <option value="Gneis">Gneis</option>
+                `;
+                textura.innerHTML = `
+                    <option value="Laminada">Laminada</option>
+                    <option value="Foliada">Foliada</option>
+                `;
+            } else if (origen === 'Ígnea') {
+                nombreRoca.innerHTML = `
+                    <option value="Granito">Granito</option>
+                    <option value="Diorita">Diorita</option>
+                `;
+                textura.innerHTML = `
+                    <option value="Fanerítica">Fanerítica</option>
+                    <option value="Porfídica">Porfídica</option>
+                `;
+            }
+        }
+
+        function previewImage(input, imgPreviewId) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(imgPreviewId);
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function generatePDF() {
+            const doc = new jsPDF();
+            const title = document.getElementById('titulo').value;
+            const formacion = document.getElementById('formacion').value;
+            const coordenadas = document.getElementById('coordenadas').value;
+            const progresiva = document.getElementById('progresiva').value;
+            const origen = document.getElementById('origen').value;
+            const nombreRoca = document.getElementById('nombre_roca').value;
+            const textura = document.getElementById('textura').value;
+
+            // Add title
+            doc.setFontSize(16);
+            doc.text(title.toUpperCase(), 105, 20, { align: "center" });
+
+            // Prepare data for the table
+            const tableData = [
+                { label: "Formación/Unidad/Grupo", value: formacion },
+                { label: "Coordenadas", value: coordenadas },
+                { label: "Progresiva", value: progresiva },
+                { label: "Clase según origen", value: origen },
+                { label: "Nombre de roca", value: nombreRoca },
+                { label: "Textura", value: textura },
+            ];
+
+            // Add table
+            doc.autoTable({
+                startY: 30,
+                head: [['Descripción', 'Valor']],
+                body: tableData.map(item => [item.label, item.value]),
+            });
+
+            // Add images
+            const img1 = document.getElementById('imgPreview1').src;
+            const img2 = document.getElementById('imgPreview2').src;
+
+            let imgY = doc.lastAutoTable.finalY + 10; // Y position for images
+            if (img1) {
+                doc.addImage(img1, 'JPEG', 10, imgY, 90, 60);
+                imgY += 0; // Adjust Y position for the next image
+            }
+            if (img2) {
+                doc.addImage(img2, 'JPEG', 110, imgY, 90, 60);
+            }
+
+            doc.save('descripcion_macroscopica_rocas.pdf');
+        }
+    </script>
+</body>
+</html>
